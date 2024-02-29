@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Glass Detector Classifier</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Glass detector_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Glass detector_files/libs/quarto-html/quarto.js"></script>
+<script src="Glass detector_files/libs/quarto-html/popper.min.js"></script>
+<script src="Glass detector_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Glass detector_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Glass detector_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Glass detector_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Glass detector_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Glass detector_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Glass detector_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Glass Detector Classifier</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>Installing Libraries and Uploading data</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.4.4     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: lattice
+
+Attaching package: 'caret'
+
+The following object is masked from 'package:purrr':
+
+    lift</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'MASS'
+
+The following object is masked from 'package:dplyr':
+
+    select</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(class)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>glass<span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"C:/Users/USNHIT/Desktop/Machine Learning Projects/Glass Detector Project/glass.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Data Cleaning</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>columns_missing_values <span class="ot">&lt;-</span> glass <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(),<span class="sc">~</span><span class="fu">sum</span>(<span class="fu">is.na</span>(.))))<span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols=</span><span class="fu">everything</span>(),<span class="at">names_to =</span> <span class="st">"Column"</span>,<span class="at">values_to =</span> <span class="st">"Missing_values"</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Missing_values<span class="sc">&gt;</span><span class="dv">0</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>proportion_missing <span class="ot">&lt;-</span> columns_missing_values <span class="sc">%&gt;%</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">proportion_missing =</span> Missing_values<span class="sc">/</span><span class="fu">nrow</span>(glass) <span class="sc">*</span><span class="dv">100</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>proportion_missing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 0 × 3
+# ℹ 3 variables: Column &lt;chr&gt;, Missing_values &lt;int&gt;, proportion_missing &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>Exploratory Data Analysis</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># maximum percentage of Sodium element in every type</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>Sodium <span class="ot">&lt;-</span> glass<span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Type)<span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">max =</span> <span class="fu">max</span>(glass<span class="sc">$</span>Na))</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>Sodium</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+   Type   max
+  &lt;int&gt; &lt;dbl&gt;
+1     1  17.4
+2     2  17.4
+3     3  17.4
+4     5  17.4
+5     6  17.4
+6     7  17.4</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(glass<span class="sc">$</span>Al,glass<span class="sc">$</span>Type)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Glass-detector_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Whether data is balanced or not  </span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>glass<span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Type)<span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+# Groups:   Type [6]
+   Type     n
+  &lt;int&gt; &lt;int&gt;
+1     1    70
+2     2    76
+3     3    17
+4     5    13
+5     6     9
+6     7    29</code></pre>
+</div>
+</div>
+<p>Test/Train Split</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>size_glass <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">nrow</span>(glass)<span class="sc">*</span><span class="fl">0.20</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>testing <span class="ot">=</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(glass),size_glass)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>train_glass <span class="ot">=</span> glass[<span class="sc">-</span>testing,]</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>test_glass <span class="ot">=</span> glass[testing,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Multivariate Logistic Regression</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nnet)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>mult.log <span class="ot">=</span> <span class="fu">multinom</span>(Type<span class="sc">~</span>.,<span class="at">data=</span>train_glass)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># weights:  66 (50 variable)
+initial  value 306.390869 
+iter  10 value 199.271008
+iter  20 value 145.402491
+iter  30 value 123.928281
+iter  40 value 120.245613
+iter  50 value 116.791342
+iter  60 value 114.105531
+iter  70 value 113.079530
+iter  80 value 112.096478
+iter  90 value 111.779646
+iter 100 value 111.696051
+final  value 111.696051 
+stopped after 100 iterations</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mult.log)<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  (Intercept)         RI         Na          Mg        Al          Si
+2   31.939236  60.455715 -0.3878434  -3.0721945  4.109964 -1.38531154
+3   12.543556 -22.839090  1.1225837  -0.3678576  2.543627  0.06008322
+5    8.269584  11.423908 -0.3742092  -7.4512020 19.445110 -0.14184825
+6   -8.281271 -11.989793 13.8181137  -7.4333772 22.869514 -1.67808910
+7  -10.771829  -7.683923  5.6319712 -11.6511341 14.627975  0.44544132
+            K          Ca         Ba          Fe
+2   -1.838361 -1.36768183  -3.426021    2.672775
+3   -2.110312  0.06300575  -2.653589    3.325376
+5   -3.177887 -2.37468526  -5.043902   -9.571902
+6 -100.907078 -4.72545710 -42.147965 -255.111266
+7   -5.849572 -8.51868734  -9.745895  -94.641286</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">predict</span>(mult.log, <span class="at">newdata =</span> test_glass,<span class="st">"probs"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               1            2            3            5            6
+73  3.402291e-01 5.722972e-01 8.670819e-02 1.709002e-04 2.505363e-29
+57  5.359949e-01 3.032704e-01 1.607346e-01 4.891358e-09 1.976430e-66
+174 5.784617e-04 4.386486e-01 1.328918e-03 5.594106e-01 4.779493e-14
+95  3.428690e-01 5.969889e-01 5.982690e-02 2.842707e-04 4.883285e-32
+209 1.180960e-20 9.593482e-15 1.118639e-18 3.750356e-04 4.568192e-01
+186 2.763370e-04 2.767438e-04 1.333871e-06 1.303077e-05 4.563875e-89
+               7
+73  5.946279e-04
+57  1.754066e-20
+174 3.344163e-05
+95  3.089898e-05
+209 5.428058e-01
+186 9.994326e-01</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>pred.mn <span class="ot">=</span> <span class="fu">predict</span>(mult.log,<span class="at">newdata =</span> test_glass, <span class="at">type =</span> <span class="st">"class"</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>cm <span class="ot">=</span> <span class="fu">confusionMatrix</span>(<span class="fu">factor</span>(pred.mn),<span class="fu">factor</span>(test_glass<span class="sc">$</span>Type))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in levels(reference) != levels(data): longer object length is not a
+multiple of shorter object length</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in confusionMatrix.default(factor(pred.mn), factor(test_glass$Type)):
+Levels are not in the same order for reference and data. Refactoring data to
+match.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>cm<span class="sc">$</span>byClass</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         Sensitivity Specificity Pos Pred Value Neg Pred Value Precision
+Class: 1   0.7692308   0.8000000      0.6250000      0.8888889 0.6250000
+Class: 2   0.6000000   0.7857143      0.6000000      0.7857143 0.6000000
+Class: 3   0.0000000   1.0000000            NaN      0.9534884        NA
+Class: 5   0.5000000   1.0000000      1.0000000      0.9761905 1.0000000
+Class: 6   1.0000000   1.0000000      1.0000000      1.0000000 1.0000000
+Class: 7   0.8888889   0.9705882      0.8888889      0.9705882 0.8888889
+            Recall        F1 Prevalence Detection Rate Detection Prevalence
+Class: 1 0.7692308 0.6896552 0.30232558     0.23255814           0.37209302
+Class: 2 0.6000000 0.6000000 0.34883721     0.20930233           0.34883721
+Class: 3 0.0000000        NA 0.04651163     0.00000000           0.00000000
+Class: 5 0.5000000 0.6666667 0.04651163     0.02325581           0.02325581
+Class: 6 1.0000000 1.0000000 0.04651163     0.04651163           0.04651163
+Class: 7 0.8888889 0.8888889 0.20930233     0.18604651           0.20930233
+         Balanced Accuracy
+Class: 1         0.7846154
+Class: 2         0.6928571
+Class: 3         0.5000000
+Class: 5         0.7500000
+Class: 6         1.0000000
+Class: 7         0.9297386</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#70% accuracy </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Linear Discriminant Analysis</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># LDA </span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>lda_glass <span class="ot">&lt;-</span> <span class="fu">lda</span>(Type<span class="sc">~</span>.,<span class="at">data =</span> train_glass)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>lda_glass</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Call:
+lda(Type ~ ., data = train_glass)
+
+Prior probabilities of groups:
+         1          2          3          5          6          7 
+0.33333333 0.35672515 0.08771930 0.06432749 0.04093567 0.11695906 
+
+Group means:
+        RI       Na        Mg       Al       Si         K       Ca         Ba
+1 1.519049 13.26842 3.5535088 1.135263 72.55754 0.4243860 8.881930 0.01561404
+2 1.518806 13.09574 2.9360656 1.406230 72.58197 0.4990164 9.186066 0.06114754
+3 1.518101 13.43200 3.5620000 1.178667 72.41000 0.3826667 8.813333 0.01000000
+5 1.518556 12.94091 0.7590909 2.134545 72.27909 1.6545455 9.771818 0.22181818
+6 1.517866 14.77429 1.0885714 1.314286 73.13429 0.0000000 9.578571 0.00000000
+7 1.517285 14.45900 0.4535000 2.158000 72.95700 0.2790000 8.647000 0.97950000
+          Fe
+1 0.04666667
+2 0.07245902
+3 0.06466667
+5 0.07181818
+6 0.00000000
+7 0.01700000
+
+Coefficients of linear discriminants:
+            LD1       LD2          LD3        LD4         LD5
+RI -402.1181496  9.313771 -588.9169611 608.912490 -658.776867
+Na   -2.5552682  3.649344   -0.7792871   4.052038    4.053912
+Mg   -0.6607928  3.461634   -1.7565541   3.585549    4.290617
+Al   -3.7744877  2.233425   -2.7337005   3.922186    2.417587
+Si   -2.6100455  3.539513   -2.4256518   4.803024    2.848103
+K    -1.6241979  2.502176   -1.6351161   4.875343    4.823728
+Ca   -0.9234891  3.017669   -0.5525952   3.010836    4.962494
+Ba   -2.1397967  4.100038   -2.4477890   2.423574    5.819352
+Fe    1.1434709 -0.371937    0.1153680  -1.831166    1.398262
+
+Proportion of trace:
+   LD1    LD2    LD3    LD4    LD5 
+0.8337 0.1015 0.0401 0.0159 0.0087 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lda_glass)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Glass-detector_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>lda_pred <span class="ot">=</span> <span class="fu">predict</span>(lda_glass,<span class="at">newdata =</span>test_glass)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(test_glass<span class="sc">$</span>Type, lda_pred<span class="sc">$</span>class)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   
+     1  2  3  5  6  7
+  1 10  2  1  0  0  0
+  2  2 12  1  0  0  0
+  3  0  1  1  0  0  0
+  5  0  2  0  0  0  0
+  6  0  1  0  0  1  0
+  7  1  1  0  0  0  7</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confusionMatrix</span>(<span class="fu">as.factor</span>(test_glass<span class="sc">$</span>Type),lda_pred<span class="sc">$</span>class)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics
+
+          Reference
+Prediction  1  2  3  5  6  7
+         1 10  2  1  0  0  0
+         2  2 12  1  0  0  0
+         3  0  1  1  0  0  0
+         5  0  2  0  0  0  0
+         6  0  1  0  0  1  0
+         7  1  1  0  0  0  7
+
+Overall Statistics
+                                          
+               Accuracy : 0.7209          
+                 95% CI : (0.5633, 0.8467)
+    No Information Rate : 0.4419          
+    P-Value [Acc &gt; NIR] : 0.0001977       
+                                          
+                  Kappa : 0.6103          
+                                          
+ Mcnemar's Test P-Value : NA              
+
+Statistics by Class:
+
+                     Class: 1 Class: 2 Class: 3 Class: 5 Class: 6 Class: 7
+Sensitivity            0.7692   0.6316  0.33333       NA  1.00000   1.0000
+Specificity            0.9000   0.8750  0.97500  0.95349  0.97619   0.9444
+Pos Pred Value         0.7692   0.8000  0.50000       NA  0.50000   0.7778
+Neg Pred Value         0.9000   0.7500  0.95122       NA  1.00000   1.0000
+Prevalence             0.3023   0.4419  0.06977  0.00000  0.02326   0.1628
+Detection Rate         0.2326   0.2791  0.02326  0.00000  0.02326   0.1628
+Detection Prevalence   0.3023   0.3488  0.04651  0.04651  0.04651   0.2093
+Balanced Accuracy      0.8346   0.7533  0.65417       NA  0.98810   0.9722</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#72% accuracy </span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Cross Validation</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="co">#lda_cv_glass &lt;- lda(Type~.,CV=TRUE,data= glass,subset = -testing)</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co">#lda_cv_glass</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Quadratic Discriminant Analysis</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">#qda_glass &lt;- qda(Type~., data=train_glass)</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co">#qda_pred &lt;- predict(qda_glass, newdata = test_glass)</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="co">#some groups are too small</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="co">#error occured</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>KNN Algorithm</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>knn_glass_train <span class="ot">=</span> train_glass[,<span class="sc">-</span><span class="fu">ncol</span>(train_glass)]</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>knn_glass_test <span class="ot">=</span> test_glass[,<span class="sc">-</span><span class="fu">ncol</span>(test_glass)]</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>knn_glass_train_labels <span class="ot">=</span> train_glass[,<span class="fu">ncol</span>(train_glass)]</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>knn_glass_test_labels <span class="ot">=</span> test_glass[,<span class="fu">ncol</span>(test_glass)]</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>knn3 <span class="ot">=</span> <span class="fu">knn</span>(<span class="at">train =</span> knn_glass_train, <span class="at">test =</span> knn_glass_test, <span class="at">cl =</span> knn_glass_train_labels, <span class="at">k=</span><span class="dv">3</span>)</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="fu">confusionMatrix</span>(knn3,<span class="fu">as.factor</span>(knn_glass_test_labels))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics
+
+          Reference
+Prediction 1 2 3 5 6 7
+         1 9 5 1 0 0 1
+         2 3 8 0 0 0 1
+         3 1 1 1 0 0 0
+         5 0 0 0 2 0 0
+         6 0 1 0 0 1 0
+         7 0 0 0 0 1 7
+
+Overall Statistics
+                                          
+               Accuracy : 0.6512          
+                 95% CI : (0.4907, 0.7899)
+    No Information Rate : 0.3488          
+    P-Value [Acc &gt; NIR] : 5.184e-05       
+                                          
+                  Kappa : 0.5309          
+                                          
+ Mcnemar's Test P-Value : NA              
+
+Statistics by Class:
+
+                     Class: 1 Class: 2 Class: 3 Class: 5 Class: 6 Class: 7
+Sensitivity            0.6923   0.5333  0.50000  1.00000  0.50000   0.7778
+Specificity            0.7667   0.8571  0.95122  1.00000  0.97561   0.9706
+Pos Pred Value         0.5625   0.6667  0.33333  1.00000  0.50000   0.8750
+Neg Pred Value         0.8519   0.7742  0.97500  1.00000  0.97561   0.9429
+Prevalence             0.3023   0.3488  0.04651  0.04651  0.04651   0.2093
+Detection Rate         0.2093   0.1860  0.02326  0.04651  0.02326   0.1628
+Detection Prevalence   0.3721   0.2791  0.06977  0.04651  0.04651   0.1860
+Balanced Accuracy      0.7295   0.6952  0.72561  1.00000  0.73780   0.8742</code></pre>
+</div>
+</div>
+<p>Choosing the optimal K with error</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>k.grid<span class="ot">=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">100</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>error<span class="ot">=</span><span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(k.grid))</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(k.grid)) {</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">=</span> <span class="fu">knn</span>(<span class="at">train =</span> <span class="fu">scale</span>(knn_glass_train), </span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">test  =</span> <span class="fu">scale</span>(knn_glass_test), </span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">cl    =</span> knn_glass_train_labels, </span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">k     =</span> k.grid[i])</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>  error[i] <span class="ot">=</span> <span class="fu">mean</span>(knn_glass_test_labels <span class="sc">!=</span>pred)</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="fu">min</span>(error)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.3953488</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(k.grid,error)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="Glass-detector_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The reason for getting higher accuracy in logistic regression as compared to KNN can be because of high dimensionality in the data set. The second reason can be because the model follows a linear relationship and logistic regression performs well in that. Logistic regression can benefit from feature selection and regularization techniques to handle irrelevant features. As compared to the KNN, it follows a non-parametric method. This can also be a reason that our data set size is small and logistic regression performs well in that.</p>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

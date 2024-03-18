@@ -62,9 +62,10 @@ spam_email%>%
 #max_values <- apply(proportion,2,max, na.rm=TRUE) #1 for rows & 2 for columns
 
 #plot(max_values)  
-#3D words has highest frequency 
-#(font, free, credit, .23) have higher values also.
+
 ```
+
+![](unnamed-chunk-3-1.png)<!-- -->
 #### Test/Train Split
 
 ```{r}
@@ -114,6 +115,7 @@ roc.test = roc(test_spam$class~log_prob,plot = TRUE,print.auc = TRUE)
 
 
 ```
+![](unnamed-chunk-5-1.png)<!-- -->
 ```{r}
  True
 log_pred   0   1
@@ -129,7 +131,7 @@ log_pred   0   1
 
 ```
 
-Logistic Regression has performed well, meaning this dataset is linearly separated and assumes no multicollinearity among variables. Another reason can be that the dataset is already well-maintained and cleaned. The ROC curve covers 97.1% of the area which is idealistic.
+Logistic Regression has performed well, meaning this dataset is linearly separated and assumes no multicollinearity among variables. Another reason can be that the dataset is already well-maintained and cleaned. The ROC curve covers 96.5% of the area which is idealistic.
 
 Further, I will test my dataset with various other algorithms to check whether my results are consistent or not. And, which model provides more optimal value.
 
@@ -248,6 +250,7 @@ min(error)
 plot(k.grid,error)
 
 ```
+![](unnamed-chunk-10-1.png)<!-- -->
 
 In the next step of KNN, I tried to find the best KNN value to get lowest error rate. In the graph as we can see that along with increase of k value, the error rate is also increasing.
 

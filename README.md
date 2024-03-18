@@ -1,351 +1,314 @@
-# **Spam Email Project**
+# Glass Detector Classifier Project
 
-Spam emails are a multifaceted problem with implications for individual privacy, organizational security, and the overall integrity of digital communication channels. Combating spam requires a combination of legal, technical, and educational approaches to minimize its impact and protect users from its associated risks. The primary goal of spam emails varies, ranging from advertising products or services to attempting to deceive recipients into revealing personal information, downloading harmful software, or parting with their money through scams.
+Glasses are made up several combination of materials and through that combination their specific shape is formed. Materials like calcium, sodium, iron and silicon are one of the examples of raw materials which are required.
 
 # Dataset Description
 
-In this dataset named "spambase_csv.csv", there are 55 columns and each column contains the metric of specific word percentage contained by the email. Words like "make", "won", "click" and "here" are examples. The column "class" is the response variable which provides the results either the email is spam or not.
+In the dataset "glass.csv", 215 records are provided which form various types of glasses which are classified from 1 to 7 respectively.The column "Type" is the response variable in this dataset. Each material column has data in form of weight percentage of the material in one unit of the specific glass.
 
-#### Installing Libraries and Data loading
+#### Installing Libraries and Uploading data
 
 ```{r}
-#Installing Libraries and Data Loading 
-
 library(tidyverse)
+library(tidyr)
 library(caret)
-library(class)
-library(nnet)
 library(MASS)
+library(class)
 
-
-
-spam_email <- read.csv("C:/Users/USNHIT/Desktop/Machine Learning Projects/Spam Email Project/spambase_csv.csv")
-head(spam_email)
-
-spam_email
+glass<- read.csv("C:/Users/USNHIT/Desktop/Machine Learning Projects/Glass Detector Project/glass.csv")
 
 ```
-#### Data Cleaning/Finding missing values
+
+#### Data Cleaning
 
 ```{r}
-
-#missing values
-columns_with_missing_values <- spam_email%>%
-  summarise(across(everything(),~sum(is.na(.)))) %>%
-  pivot_longer(cols = everything(),names_to = "Column", values_to = "Missing_values")%>%
+columns_missing_values <- glass %>%
+  summarise(across(everything(),~sum(is.na(.))))%>%
+  pivot_longer(cols=everything(),names_to = "Column",values_to = "Missing_values")%>%
   filter(Missing_values>0)
 
+proportion_missing <- columns_missing_values %>%
+  mutate(proportion_missing = Missing_values/nrow(glass) *100)
 
-
+proportion_missing
 ```
-0 missing value have been found; Dataset is already cleaned and maintained.
+
+#### Exploratory Data Analysis
 
 ```{r}
-#Exploratory Data Analysis 
+# maximum percentage of Sodium element in every type
+Sodium <- glass%>%
+  group_by(Type)%>%
+  summarise(max = max(glass$Na))
 
-#data distribution  
-#1813 out of 4601 are spam emails  
+Sodium
 
-spam_email%>%
-  group_by(spam_email$class)%>%
-  summarise(sum = sum(class))
+plot(glass$Al,glass$Type)
 
-#which set of words have highest proportion in spam email?
-
-
-#proportion  <- spam_email%>%
-  #filter(class == 1)%>%
-  #select(-capital_run_length_average,-capital_run_length_longest,-capital_run_length_total)
-
-#boxplot(proportion)
-
-#max_values <- apply(proportion,2,max, na.rm=TRUE) #1 for rows & 2 for columns
-
-#plot(max_values)  
-
+#Whether data is balanced or not  
+glass%>%
+  group_by(Type)%>%
+  count()
 ```
 
-![](unnamed-chunk-3-1.png)<!-- -->
+We can see from the data distribution that data is not very well-balanced as the type 1 and type 2 glasses are in large amount as compared to others.
+
 #### Test/Train Split
 
 ```{r}
-# test train split
+set.seed(101)
+size_glass = round(nrow(glass)*0.20)
+testing = sample(nrow(glass),size_glass)
 
-size_email = round(nrow(spam_email)*0.22)
-
-testing = sample(nrow(spam_email),size_email)
-
-train_spam =  spam_email[-testing,]
-test_spam = spam_email[testing,]
-
+train_glass = glass[-testing,]
+test_glass = glass[testing,]
 ```
 
-
-#### Logisitic Regression
+#### Multivariate Logistic Regression
 
 ```{r}
-# Logistic Regression 
+library(nnet)
 
-log_spam <- glm(class ~.,train_spam, family = binomial)
-summary(log_spam)$coef
+mult.log = multinom(Type~.,data=train_glass)
 
-log_prob <- predict(log_spam,newdata = test_spam, type = "response")
+summary(mult.log)$coefficients
 
-log_pred <- rep(0, nrow(test_spam))
-log_pred[log_prob>=0.5] = 1
-log_pred = as.factor(log_pred)
+head(predict(mult.log, newdata = test_glass,"probs"))
 
-#941 values out of 1012 were predicted correctly which is not bad.
+pred.mn = predict(mult.log,newdata = test_glass, type = "class")
 
-library(caret)
-
-table(log_pred, True = test_spam[,"class"])
-
-round(mean(log_pred!=test_spam[,"class"]),4) # error rate is 7% 
+confusionMatrix(factor(pred.mn),factor(test_glass$Type))
 
 
-cm = confusionMatrix(log_pred, as.factor(test_spam$class))
-# Accuracy  = 93%
 
-cm$byClass
-
-library(pROC)
-
-roc.test = roc(test_spam$class~log_prob,plot = TRUE,print.auc = TRUE)
-
-
+#70% accuracy 
 ```
-![](unnamed-chunk-5-1.png)<!-- -->
 ```{r}
- True
-log_pred   0   1
-       0 590  43
-       1  28 351
-[1] 0.0702
-         Sensitivity          Specificity       Pos Pred Value       Neg Pred Value 
-           0.9546926            0.8908629            0.9320695            0.9261214 
-           Precision               Recall                   F1           Prevalence 
-           0.9320695            0.9546926            0.9432454            0.6106719 
-      Detection Rate Detection Prevalence    Balanced Accuracy 
-           0.5830040            0.6254941            0.9227778 
+
+ Reference
+Prediction  1  2  3  5  6  7
+         1 10  5  1  0  0  0
+         2  3  9  1  1  0  1
+         3  0  0  0  0  0  0
+         5  0  0  0  1  0  0
+         6  0  0  0  0  2  0
+         7  0  1  0  0  0  8
+
+Overall Statistics
+                                          
+               Accuracy : 0.6977          
+                 95% CI : (0.5387, 0.8282)
+    No Information Rate : 0.3488          
+    P-Value [Acc > NIR] : 3.364e-06       
+                                          
+                  Kappa : 0.5794          
+                                          
+ Mcnemar's Test P-Value : NA
 
 ```
 
-Logistic Regression has performed well, meaning this dataset is linearly separated and assumes no multicollinearity among variables. Another reason can be that the dataset is already well-maintained and cleaned. The ROC curve covers 96.5% of the area which is idealistic.
+I have applied first multivariate logistic regression model. Our overall test accuracy is 70% approximately and as our data is unbalanced, majority of errors we have got in predicting type 2 glass as type 1.
 
-Further, I will test my dataset with various other algorithms to check whether my results are consistent or not. And, which model provides more optimal value.
+To further evaluate, we can use Linear discrimnant analysis to find how much easier the type of each glass is classified through their discriminant score based on means of variable and the pooled covariance matrix of the variables.
 
 
 #### Linear Discriminant Analysis
 
 ```{r}
-# Linear Discriminant Analysis
+# LDA 
 
-library(MASS)
-
-lda_m = lda(class~.,data = train_spam)
-
+lda_glass <- lda(Type~.,data = train_glass)
+lda_glass
 
 
-lda.predict = predict(lda_m,newdata = test_spam)
+plot(lda_glass)
 
-table(test_spam$class,lda.predict$class)
+lda_pred = predict(lda_glass,newdata =test_glass)
 
-confusionMatrix(factor(test_spam$class), lda.predict$class)
+table(test_glass$Type, lda_pred$class)
+
+confusionMatrix(as.factor(test_glass$Type),lda_pred$class)
+
+#72% accuracy 
+
+#Cross Validation
+
+#lda_cv_glass <- lda(Type~.,CV=TRUE,data= glass,subset = -testing)
+
+#lda_cv_glass
+
 
 ```
 
 ```{r}
+
 Reference
-Prediction   0   1
-         0 595  23
-         1  81 313
+Prediction  1  2  3  5  6  7
+         1 10  2  1  0  0  0
+         2  2 12  1  0  0  0
+         3  0  1  1  0  0  0
+         5  0  2  0  0  0  0
+         6  0  1  0  0  1  0
+         7  1  1  0  0  0  7
+
+Overall Statistics
                                           
-               Accuracy : 0.8972          
-                 95% CI : (0.8769, 0.9153)
-    No Information Rate : 0.668           
-    P-Value [Acc > NIR] : < 2.2e-16       
+               Accuracy : 0.7209          
+                 95% CI : (0.5633, 0.8467)
+    No Information Rate : 0.4419          
+    P-Value [Acc > NIR] : 0.0001977       
                                           
-                  Kappa : 0.778           
+                  Kappa : 0.6103          
                                           
- Mcnemar's Test P-Value : 2.28e-08        
-                                          
-            Sensitivity : 0.8802          
-            Specificity : 0.9315          
-         Pos Pred Value : 0.9628          
-         Neg Pred Value : 0.7944          
-             Prevalence : 0.6680          
-         Detection Rate : 0.5879          
-   Detection Prevalence : 0.6107          
-      Balanced Accuracy : 0.9059          
-                                          
-       'Positive' Class : 0 
+ Mcnemar's Test P-Value : NA             
 
 ```
-Linear discriminant analysis(LDA) has also performed very similar as logistic regression has performed. One of the reason can be that LDA finds a linear combination of features to separate classes and calculates the discriminant score based on means of variable and pooled covariance matrix of the variable.
+In the Linear Discriminant Analysis (LDA), our test accuracy has been improved by 3% from logistic regression. Further, our wrong predicted are also balanced in this model. The major concern to consider it as optimal model is that our test data is very less to finalize our optimal model.
 
-Having False negative more than the False positive is a concerning point here as some of the emails which are not spam will be considered as spam and ultimately loss of priority emails can damage the productivity.
-
-
-#### KNN (for K=3 and K=7)
+#### KNN Algorithm
 
 ```{r}
-#KNN 
+knn_glass_train = train_glass[,-ncol(train_glass)]
+knn_glass_test = test_glass[,-ncol(test_glass)]
+knn_glass_train_labels = train_glass[,ncol(train_glass)]
+knn_glass_test_labels = test_glass[,ncol(test_glass)]
 
-train_features <- train_spam[, -ncol(train_spam)]
-train_labels <- train_spam[, ncol(train_spam)]
-test_features <- test_spam[, -ncol(test_spam)]
-test_labels <- test_spam[, ncol(test_spam)]
+knn3 = knn(train = knn_glass_train, test = knn_glass_test, cl = knn_glass_train_labels, k=3)
 
-knn3 = knn(train = train_features, test = test_features, cl = train_labels, k=3)
-
-table(knn3, (test_labels))
-
-mean(knn3 ==test_labels)
- 
-
-
-knn7 = knn(train = train_features, test= test_features, cl = train_labels, k =7)
-
-table(knn7,test_labels)
-mean(knn7 ==test_labels)
+confusionMatrix(knn3,as.factor(knn_glass_test_labels))
 
 ```
-```{r}
-knn3   0   1
-   0 519  99
-   1  99 295
-[1] 0.8043478
-    test_labels
-knn7   0   1
-   0 524  96
-   1  94 298
-[1] 0.812253
-
-```
-In the KNN algorithms, the test accuracy results have been decreased to approximately 80%. One of the reason of the loosing the accuracy is that our data is high dimensional data as our dataset contains 55 variables.
-
-
-#### Choosing best k value for the algorithm
 
 ```{r}
 
-# choosing best k value for knn
+Confusion Matrix and Statistics
 
-set.seed(122)
-k.grid= 1:100
-error = rep(0, length(k.grid))
+          Reference
+Prediction 1 2 3 5 6 7
+         1 9 4 1 0 0 1
+         2 3 8 0 0 0 1
+         3 1 2 1 0 0 0
+         5 0 0 0 2 0 0
+         6 0 1 0 0 1 0
+         7 0 0 0 0 1 7
+
+Overall Statistics
+
+In this step, I have tested my dataset through KNN and found that our test accuracy is decreased. One of the reasons can be that our dataset is too much complex as it 7 different type of glasses. And, the best K value can be found as 1 or 2 through the following graph. As the K value is very less, there is a chance of high variance in the dataset.
+
+```
+#### Choosing the optimal K with error
+
+```{r}
+set.seed(1234)
+k.grid=1:100
+error=rep(0, length(k.grid))
 
 for (i in seq_along(k.grid)) {
-  pred = knn(train = scale(train_features), 
-             test = scale(test_features),
-             cl = train_labels,
-             k = k.grid[i])
-  error[i] = mean(test_labels!= pred)
-  
+  pred = knn(train = scale(knn_glass_train), 
+             test  = scale(knn_glass_test), 
+             cl    = knn_glass_train_labels, 
+             k     = k.grid[i])
+  error[i] = mean(knn_glass_test_labels !=pred)
 }
 
 min(error)
 
 plot(k.grid,error)
 
+
+
+
 ```
-![](unnamed-chunk-10-1.png)<!-- -->
+#### Overall Summary till this point
 
-In the next step of KNN, I tried to find the best KNN value to get lowest error rate. In the graph as we can see that along with increase of k value, the error rate is also increasing.
+The reason for getting higher accuracy in logistic regression as compared to KNN can be because of high dimensionality in the data set. The second reason can be because the model follows a linear relationship and logistic regression performs well in that. Logistic regression can benefit from feature selection and regularization techniques to handle irrelevant features. As compared to the KNN, it follows a non-parametric method. This can also be a reason that our data set size is small and logistic regression performs well in that.
 
 
-#### Boosting
+#### Bagging & Random Forest
 
 ```{r}
-library(gbm)
 set.seed(123)
-model.spam <- gbm(formula = class ~ ., distribution="bernoulli", data=train_spam, n.trees = 10000)
-print(model.spam)
+library(ipred)
+model.bag=bagging(factor(train_glass$Type) ~ ., data=train_glass, coob = TRUE)
 
-pred.spam=predict(model.spam, newdata=test_spam,n.trees=10000, distribution="bernoulli", type="response")
-spampred=ifelse(pred.spam < 0.5, 0, 1)
+print(model.bag)
 
-confusionMatrix(factor(test_spam[,"class"]), factor(spampred))
-```
+pred.bag = predict(model.bag,newdata=test_glass, type = "class")
 
-```{r}
-Reference
-Prediction   0   1
-         0 594  24
-         1  36 358
-                                          
-               Accuracy : 0.9407          
-                 95% CI : (0.9243, 0.9545)
-    No Information Rate : 0.6225          
-    P-Value [Acc > NIR] : <2e-16          
-                                          
-                  Kappa : 0.8746          
-                                          
- Mcnemar's Test P-Value : 0.1556          
-                                          
-            Sensitivity : 0.9429          
-            Specificity : 0.9372          
-         Pos Pred Value : 0.9612          
-         Neg Pred Value : 0.9086          
-             Prevalence : 0.6225          
-         Detection Rate : 0.5870          
-   Detection Prevalence : 0.6107          
-      Balanced Accuracy : 0.9400  
+# Calculate the confusion matrix for the test set
+confusionMatrix(factor(pred.bag, levels = 1:7),
+                factor(test_glass$Type, levels = 1:7))
 
-```
-
-#### Support Vector Machines 
-
-```{r}
-library(e1071)
-
-svm_model<- svm(class ~ ., data = train_spam, type = "C-classification", kernel = "linear", scale = FALSE, cost=0.1)
-
-svm_model
-
-pred_test <- predict(svm_model, test_spam)
-mean(pred_test == test_spam$class)
-
-confusionMatrix(pred_test, factor(test_spam$class) )
 
 ```
 
 ```{r}
-Number of Support Vectors:  804
+Bagging classification trees with 25 bootstrap replications 
 
-[1] 0.9219368
+Call: bagging.data.frame(formula = factor(train_glass$Type) ~ ., data = train_glass, 
+    coob = TRUE)
+
+Out-of-bag estimate of misclassification error:  0.2982 
+
 Confusion Matrix and Statistics
 
           Reference
-Prediction   0   1
-         0 559  20
-         1  59 374
+Prediction  1  2  3  4  5  6  7
+         1 10  5  0  0  0  0  1
+         2  3 10  0  0  1  0  0
+         3  0  0  2  0  0  0  0
+         4  0  0  0  0  0  0  0
+         5  0  0  0  0  1  0  0
+         6  0  0  0  0  0  2  0
+         7  0  0  0  0  0  0  8
+
+Overall Statistics
                                           
-               Accuracy : 0.9219          
-                 95% CI : (0.9037, 0.9377)
-    No Information Rate : 0.6107          
-    P-Value [Acc > NIR] : < 2.2e-16       
+               Accuracy : 0.7674          
+                 95% CI : (0.6137, 0.8824)
+    No Information Rate : 0.3488          
+    P-Value [Acc > NIR] : 2.505e-08       
                                           
-                  Kappa : 0.8387          
+                  Kappa : 0.6812          
                                           
- Mcnemar's Test P-Value : 1.909e-05       
-                                          
-            Sensitivity : 0.9045          
-            Specificity : 0.9492          
-         Pos Pred Value : 0.9655          
-         Neg Pred Value : 0.8637          
-             Prevalence : 0.6107          
-         Detection Rate : 0.5524          
-   Detection Prevalence : 0.5721          
-      Balanced Accuracy : 0.9269          
-                                          
-       'Positive' Class : 0       
+ Mcnemar's Test P-Value : NA       
 
 ```
-Boosting and Support Vector Classifier, both have performed well as they handle high dimensional data very well. Specifically for Support Vector Machines, false negative is higher as compared to false positive which still remains the same issue of neglecting the legitimate emails which are not spam.
+Overall, through Bagging our test accuracy has significantly increased making it overall 76%. Further, we can evaluate our model with Random Forest as it the extension of Bagging.
 
-## Conclusion
 
-In conclusion, boosting and logistic regression have performed well in terms of our criteria set. Hence to further optimize, we can use XG Boost or perform cross-validation to tune the model. Otherwise, our all models have performed better than expected. Even without tuning, our machine-learning model is set to be deployed.
+```{r}
+Confusion Matrix and Statistics
+
+          Reference
+Prediction  1  2  3  4  5  6  7
+         1 11  5  0  0  0  0  1
+         2  2 10  0  0  0  0  1
+         3  0  0  2  0  0  0  0
+         4  0  0  0  0  0  0  0
+         5  0  0  0  0  2  0  0
+         6  0  0  0  0  0  2  0
+         7  0  0  0  0  0  0  7
+
+Overall Statistics
+                                          
+               Accuracy : 0.7907          
+                 95% CI : (0.6396, 0.8996)
+    No Information Rate : 0.3488          
+    P-Value [Acc > NIR] : 3.86e-09        
+                                          
+                  Kappa : 0.715           
+                                          
+ Mcnemar's Test P-Value : NA 
+
+{r}
+
+By applying Random Forest, we have concluded our test accuracy to rise up to 79% which is quite optimal. Now, for further testing, we have to find a procedure through we can balance our dataset.
+
+#### Conclusion
+
+Overall, our test accuracy has been increased to 81% in total which is acceptable as our number of records are not much. For further, we can apply Synthetic Minority Oversampling Technique (SMOTE) to balance the training dataset and then evaluate the model as records with miniority data will be equally weighted through it.
+
+
 

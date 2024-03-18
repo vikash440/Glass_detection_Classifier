@@ -53,6 +53,9 @@ glass%>%
 
 We can see from the data distribution that data is not very well-balanced as the type 1 and type 2 glasses are in large amount as compared to others.
 
+![](pic1.png)<!-- -->
+![](pic2.png)<!-- -->
+
 #### Test/Train Split
 
 ```{r}
@@ -139,6 +142,7 @@ confusionMatrix(as.factor(test_glass$Type),lda_pred$class)
 
 
 ```
+![](pic3.png)<!-- -->
 
 ```{r}
 
@@ -220,6 +224,7 @@ plot(k.grid,error)
 
 
 ```
+![](pic4.png)<!-- -->
 #### Overall Summary till this point
 
 The reason for getting higher accuracy in logistic regression as compared to KNN can be because of high dimensionality in the data set. The second reason can be because the model follows a linear relationship and logistic regression performs well in that. Logistic regression can benefit from feature selection and regularization techniques to handle irrelevant features. As compared to the KNN, it follows a non-parametric method. This can also be a reason that our data set size is small and logistic regression performs well in that.
@@ -302,7 +307,7 @@ Overall Statistics
                                           
  Mcnemar's Test P-Value : NA 
 
-{r}
+```
 
 By applying Random Forest, we have concluded our test accuracy to rise up to 79% which is quite optimal. Now, for further testing, we have to find a procedure through we can balance our dataset.
 

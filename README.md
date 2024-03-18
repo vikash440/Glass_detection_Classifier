@@ -4,7 +4,7 @@ Spam emails are a multifaceted problem with implications for individual privacy,
 
 # Dataset Description
 
-In this dataset, there are 55 columns and each column contains the metric of specific word percentage contained by the email. Words like "make", "won", "click" and "here" are examples. The column "class" is the response variable which provides the results either the email is spam or not.
+In this dataset named "spambase_csv.csv", there are 55 columns and each column contains the metric of specific word percentage contained by the email. Words like "make", "won", "click" and "here" are examples. The column "class" is the response variable which provides the results either the email is spam or not.
 
 #### Installing Libraries and Data loading
 

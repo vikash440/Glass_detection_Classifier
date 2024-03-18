@@ -151,6 +151,8 @@ table(test_spam$class,lda.predict$class)
 
 confusionMatrix(factor(test_spam$class), lda.predict$class)
 
+```
+
 ```{r}
 Reference
 Prediction   0   1
@@ -217,6 +219,7 @@ knn7   0   1
    0 524  96
    1  94 298
 [1] 0.812253
+
 ```
 In the KNN algorithms, the test accuracy results have been decreased to approximately 80%. One of the reason of the loosing the accuracy is that our data is high dimensional data as our dataset contains 55 variables.
 
@@ -224,6 +227,7 @@ In the KNN algorithms, the test accuracy results have been decreased to approxim
 #### Choosing best k value for the algorithm
 
 ```{r}
+
 # choosing best k value for knn
 
 set.seed(122)
@@ -243,6 +247,8 @@ min(error)
 
 plot(k.grid,error)
 
+```
+
 In the next step of KNN, I tried to find the best KNN value to get lowest error rate. In the graph as we can see that along with increase of k value, the error rate is also increasing.
 
 
@@ -258,6 +264,7 @@ pred.spam=predict(model.spam, newdata=test_spam,n.trees=10000, distribution="ber
 spampred=ifelse(pred.spam < 0.5, 0, 1)
 
 confusionMatrix(factor(test_spam[,"class"]), factor(spampred))
+```
 
 ```{r}
 Reference

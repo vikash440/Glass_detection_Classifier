@@ -345,7 +345,7 @@ Prediction   0   1
 ```
 Boosting and Support Vector Classifier, both have performed well as they handle high dimensional data very well. Specifically for Support Vector Machines, false negative is higher as compared to false positive which still remains the same issue of neglecting the legitimate emails which are not spam.
 
-#### Conclusion
+## Conclusion
 
 In conclusion, boosting and logistic regression have performed well in terms of our criteria set. Hence to further optimize, we can use XG Boost or perform cross-validation to tune the model. Otherwise, our all models have performed better than expected. Even without tuning, our machine-learning model is set to be deployed.
 
